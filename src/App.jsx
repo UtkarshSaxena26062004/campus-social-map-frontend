@@ -6,6 +6,9 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import CreatePost from "./pages/CreatePost";
 import PostDetails from "./pages/PostDetails";
+import FloatingCreateButton from "./components/FloatingCreateButton";
+import About from "./pages/About";
+import "./App.css";
 
 const isAuthenticated = () => {
   return !!localStorage.getItem("csm_token");
@@ -17,8 +20,9 @@ const PrivateRoute = ({ children }) => {
 
 export default function App() {
   return (
-    <>
+    <div className="app-root">
       <Navbar />
+
       <div className="app-container">
         <Routes>
           <Route
@@ -29,6 +33,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/create"
             element={
@@ -37,6 +42,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/posts/:id"
             element={
@@ -45,10 +51,23 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+  path="/about"
+  element={
+    <PrivateRoute>
+      <About />
+    </PrivateRoute>
+  }
+/>
+
         </Routes>
       </div>
-    </>
+
+      {/* Floating create post button */}
+      <FloatingCreateButton />
+    </div>
   );
 }

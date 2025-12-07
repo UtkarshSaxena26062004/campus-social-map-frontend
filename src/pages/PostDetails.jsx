@@ -1,27 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
+import "./PostDetails.css";
 
 export default function PostDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
+  // current user
   const user = localStorage.getItem("csm_user")
     ? JSON.parse(localStorage.getItem("csm_user"))
     : null;
+  const userId = user?._id || user?.id || user?.userId; // normalize id
 
   const fetchPost = async () => {
     try {
       setLoading(true);
       const res = await api.get(`/posts/${id}`);
       setPost(res.data);
+      setError("");
     } catch (err) {
       console.error("Error fetching post details", err);
       setError("Unable to load post");
+      setPost(null);
     } finally {
       setLoading(false);
     }
@@ -33,47 +40,55 @@ export default function PostDetails() {
   }, [id]);
 
   if (loading) {
-    return <p style={{ marginTop: "1rem" }}>Loading...</p>;
+    return (
+      <div className="post-details-page">
+        <div className="details-loading">
+          <div className="spinner" />
+          <span>Loading post...</span>
+        </div>
+      </div>
+    );
   }
 
   if (!post) {
     return (
-      <div style={{ marginTop: "1rem" }}>
-        <p>Post not found.</p>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            marginTop: "0.5rem",
-            padding: "0.4rem 0.8rem",
-            borderRadius: "0.4rem",
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: "#2563eb",
-            color: "white",
-            fontSize: "0.85rem",
-          }}
-        >
-          Go Back
-        </button>
+      <div className="post-details-page">
+        <div className="details-card">
+          <button onClick={() => navigate(-1)} className="back-btn">
+            ← Back
+          </button>
+          <p className="details-error-text">Post not found or removed.</p>
+        </div>
       </div>
     );
   }
 
   const dateStr = post.date ? new Date(post.date).toLocaleDateString() : null;
+
+  // normalize createdBy id
+  const createdById =
+    post.createdBy?._id || post.createdBy?.id || post.createdBy?.userId;
+
+  const isOwner = !!userId && !!createdById && createdById === userId;
+
   const isJoined =
-    user && post.participants?.some((p) => p._id === user.id || p.id === user.id);
+    !!userId &&
+    post.participants?.some(
+      (p) => (p._id || p.id || p.userId) === userId
+    );
 
   const handleJoinLeave = async () => {
     if (!user) return;
     setJoining(true);
     setError("");
+
     try {
       if (isJoined) {
         await api.post(`/posts/${post._id}/leave`);
       } else {
         await api.post(`/posts/${post._id}/join`);
       }
-      await fetchPost(); // refresh data
+      await fetchPost();
     } catch (err) {
       console.error("Join/Leave error", err);
       setError("Action failed, please try again.");
@@ -82,111 +97,151 @@ export default function PostDetails() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!isOwner) return;
+
+    const ok = window.confirm("Are you sure you want to delete this post?");
+    if (!ok) return;
+
+    try {
+      setDeleting(true);
+      setError("");
+      await api.delete(`/posts/${post._id}`);
+      navigate("/");
+    } catch (err) {
+      console.error("Delete error", err);
+      setError("Failed to delete post, try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const typeLabel = post.type.replace("_", " ");
+
   return (
-    <div
-      style={{
-        marginTop: "1.5rem",
-        backgroundColor: "white",
-        padding: "1.25rem",
-        borderRadius: "0.75rem",
-        boxShadow: "0 1px 5px rgba(0,0,0,0.08)",
-        maxWidth: "640px",
-      }}
-    >
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          marginBottom: "0.75rem",
-          padding: "0.3rem 0.7rem",
-          borderRadius: "0.4rem",
-          border: "1px solid #d1d5db",
-          backgroundColor: "white",
-          cursor: "pointer",
-          fontSize: "0.8rem",
-        }}
-      >
-        ← Back
-      </button>
+    <div className="post-details-page">
+      <div className="details-card">
+        {/* Back Button */}
+        <button onClick={() => navigate(-1)} className="back-btn">
+          ← Back to feed
+        </button>
 
-      <h2 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-        {post.title}
-      </h2>
+        {/* Header */}
+        <header className="details-header">
+          <div className="details-title-wrap">
+            <h2>{post.title}</h2>
+            <span className={`details-type-badge type-${post.type || "OTHER"}`}>
+              {typeLabel}
+            </span>
+          </div>
+          <div className="details-participants-chip">
+            👥 {post.participants?.length || 0} joined
+          </div>
+        </header>
+
+        {/* Image */}
         {post.imageUrl && (
-  <div
-    style={{
-      marginTop: "0.5rem",
-      marginBottom: "0.75rem",
-      borderRadius: "0.75rem",
-      overflow: "hidden",
-    }}
-  >
-    <img
-      src={post.imageUrl}
-      alt={post.title}
-      style={{ width: "100%", maxHeight: "360px", objectFit: "cover" }}
-    />
-  </div>
-)}
+          <div className="details-image-wrapper">
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              className="details-image"
+            />
+          </div>
+        )}
 
-      <p style={{ fontSize: "0.9rem", color: "#4b5563", marginBottom: "0.75rem" }}>
-        {post.description}
-      </p>
+        {/* Description */}
+        <p className="details-description">{post.description}</p>
 
-      <p style={{ fontSize: "0.9rem", marginBottom: "0.25rem" }}>
-        <strong>Type:</strong> {post.type.replace("_", " ")}
-      </p>
-      <p style={{ fontSize: "0.9rem", marginBottom: "0.25rem" }}>
-        <strong>Location:</strong> {post.locationText}
-      </p>
-      {dateStr && (
-        <p style={{ fontSize: "0.9rem", marginBottom: "0.25rem" }}>
-          <strong>When:</strong> {dateStr} {post.time && `• ${post.time}`}
-        </p>
-      )}
-      <p style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-        <strong>Created by:</strong> {post.createdBy?.name || "Unknown"}{" "}
-        {post.createdBy?.branch && `(${post.createdBy.branch})`}
-      </p>
+        {/* Meta Section */}
+        <div className="details-meta-grid">
+          <div className="meta-block">
+            <span className="meta-label">Location</span>
+            <span className="meta-value">📍 {post.locationText}</span>
+          </div>
 
-      <p style={{ fontSize: "0.9rem", marginBottom: "0.75rem" }}>
-        <strong>Participants:</strong> {post.participants?.length || 0}
-      </p>
+          {dateStr && (
+            <div className="meta-block">
+              <span className="meta-label">When</span>
+              <span className="meta-value">
+                📅 {dateStr} {post.time && `• ${post.time}`}
+              </span>
+            </div>
+          )}
 
-      {error && (
-        <p style={{ color: "red", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-          {error}
-        </p>
-      )}
-
-      <button
-        onClick={handleJoinLeave}
-        disabled={joining}
-        style={{
-          padding: "0.5rem 1rem",
-          borderRadius: "0.5rem",
-          border: "none",
-          cursor: "pointer",
-          backgroundColor: isJoined ? "#ef4444" : "#22c55e",
-          color: "white",
-          fontWeight: 500,
-          fontSize: "0.9rem",
-        }}
-      >
-        {joining ? "Please wait..." : isJoined ? "Leave" : "Join"}
-      </button>
-
-      {post.participants && post.participants.length > 0 && (
-        <div style={{ marginTop: "1rem" }}>
-          <p style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-            People who joined:
-          </p>
-          <ul style={{ fontSize: "0.85rem", color: "#4b5563" }}>
-            {post.participants.map((p) => (
-              <li key={p._id || p.id}>• {p.name}</li>
-            ))}
-          </ul>
+          <div className="meta-block">
+            <span className="meta-label">Created by</span>
+            <span className="meta-value">
+              👤 {post.createdBy?.name || "Unknown"}
+              {post.createdBy?.branch && ` · ${post.createdBy.branch}`}
+            </span>
+          </div>
         </div>
-      )}
+
+        {/* Tags */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="details-tags">
+            {post.tags.map((tag) => (
+              <span key={tag} className="details-tag-pill">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Error */}
+        {error && <p className="details-inline-error">{error}</p>}
+
+        {/* Join + Delete Buttons */}
+        <div className="details-actions">
+          <button
+            onClick={handleJoinLeave}
+            disabled={joining || !user}
+            className={`join-btn ${isJoined ? "leave" : "join"}`}
+          >
+            {joining
+              ? "Please wait..."
+              : isJoined
+              ? "Leave this post"
+              : user
+              ? "Join this post"
+              : "Login to join"}
+          </button>
+
+          {isOwner && (
+            <button
+              type="button"
+              className="delete-btn"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete post"}
+            </button>
+          )}
+        </div>
+
+        {/* Participants */}
+        {post.participants && post.participants.length > 0 && (
+          <section className="details-participants-section">
+            <h3>People who joined</h3>
+            <ul className="participants-list">
+              {post.participants.map((p) => (
+                <li key={p._id || p.id || p.userId} className="participant-item">
+                  <div className="participant-avatar">
+                    {p.name?.[0]?.toUpperCase() || "U"}
+                  </div>
+                  <div className="participant-info">
+                    <span className="participant-name">{p.name}</span>
+                    {p.branch && (
+                      <span className="participant-branch">{p.branch}</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

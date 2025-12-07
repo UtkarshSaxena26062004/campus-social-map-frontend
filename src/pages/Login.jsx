@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axiosInstance";
+import "./Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     try {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("csm_token", res.data.token);
@@ -22,46 +24,52 @@ export default function Login() {
   };
 
   return (
-    <div style={{ marginTop: "2rem", maxWidth: "400px", marginInline: "auto" }}>
-      <h2 style={{ marginBottom: "1rem", fontSize: "1.2rem", fontWeight: 600 }}>Login</h2>
-      {error && (
-        <p style={{ color: "red", fontSize: "0.85rem", marginBottom: "0.5rem" }}>{error}</p>
-      )}
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        <input
-          type="email"
-          placeholder="College Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: "#2563eb",
-            color: "white",
-            fontWeight: 500
-          }}
-        >
-          Login
-        </button>
-      </form>
-      <p style={{ fontSize: "0.85rem", marginTop: "0.75rem" }}>
-        Don't have an account? <Link to="/register" style={{ color: "#2563eb" }}>Register</Link>
-      </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2>Welcome back</h2>
+          <p>Login to continue exploring the campus feed</p>
+        </div>
+
+        {error && <p className="auth-error">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-field">
+            <label className="field-label">College Email</label>
+            <input
+              type="email"
+              placeholder="example@college.edu"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="auth-input"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="auth-input"
+            />
+          </div>
+
+          <button type="submit" className="auth-btn">
+            Login
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Don't have an account?{" "}
+          <Link to="/register" className="auth-link">
+            Register
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

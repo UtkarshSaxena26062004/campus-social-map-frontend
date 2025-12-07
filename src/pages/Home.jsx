@@ -3,6 +3,7 @@ import api from "../api/axiosInstance";
 import PostCard from "../components/PostCard";
 import FilterBar from "../components/FilterBar";
 import { io } from "socket.io-client";
+import "./Home.css";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -34,7 +35,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Filters change hone par reload
+  // Filters change hone par reload (debounced)
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchPosts();
@@ -45,9 +46,8 @@ export default function Home() {
 
   const uniqueTags = [...new Set(posts.flatMap((p) => p.tags || []))];
 
-  // 🔴 Realtime: Socket.io
+  // Realtime: Socket.io
   useEffect(() => {
-    // Backend URL
     const socket = io("http://localhost:5000", {
       transports: ["websocket", "polling"],
     });
@@ -58,7 +58,6 @@ export default function Home() {
 
     socket.on("postCreated", (data) => {
       console.log("Realtime: New post created", data);
-      // Sirf list fresh kar do
       fetchPosts();
     });
 
@@ -70,14 +69,26 @@ export default function Home() {
       socket.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // sirf 1 baar
+  }, []);
 
   return (
-    <div style={{ marginTop: "1.5rem" }}>
-      <h2 style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-        Campus Posts
-      </h2>
+    <div className="home-page">
+      {/* Header */}
+      <div className="home-header">
+        <div>
+          <h2>Campus feed</h2>
+          <p>
+            Explore what&apos;s happening around your campus in real-time – events,
+            study groups, announcements and more.
+          </p>
+        </div>
+        <div className="home-stats-chip">
+          <span className="dot-live" />
+          {loading ? "Syncing..." : `${posts.length} active posts`}
+        </div>
+      </div>
 
+      {/* Filter bar */}
       <FilterBar
         type={type}
         setType={setType}
@@ -85,58 +96,60 @@ export default function Home() {
         setSearch={setSearch}
       />
 
+      {/* Tags row */}
       {uniqueTags.length > 0 && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            display: "flex",
-            gap: "0.5rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <span
+        <div className="tags-row">
+          <button
+            type="button"
             onClick={() => setSelectedTag("")}
-            style={{
-              padding: "0.25rem 0.75rem",
-              borderRadius: "999px",
-              fontSize: "0.8rem",
-              cursor: "pointer",
-              backgroundColor: selectedTag === "" ? "#111827" : "#e5e7eb",
-              color: selectedTag === "" ? "white" : "#374151",
-            }}
+            className={
+              selectedTag === ""
+                ? "tag-pill tag-pill-active"
+                : "tag-pill"
+            }
           >
             All tags
-          </span>
+          </button>
           {uniqueTags.map((tag) => (
-            <span
+            <button
+              type="button"
               key={tag}
               onClick={() =>
                 setSelectedTag(tag === selectedTag ? "" : tag)
               }
-              style={{
-                padding: "0.25rem 0.75rem",
-                borderRadius: "999px",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                backgroundColor:
-                  tag === selectedTag ? "#2563eb" : "#e5e7eb",
-                color: tag === selectedTag ? "white" : "#374151",
-              }}
+              className={
+                tag === selectedTag
+                  ? "tag-pill tag-pill-active"
+                  : "tag-pill"
+              }
             >
               #{tag}
-            </span>
+            </button>
           ))}
         </div>
       )}
 
+      {/* List / states */}
       {loading ? (
-        <p style={{ fontSize: "0.9rem" }}>Loading...</p>
+        <div className="home-loading">
+          <div className="loading-pulse" />
+          <span>Loading posts...</span>
+        </div>
       ) : posts.length === 0 ? (
-        <p style={{ fontSize: "0.9rem" }}>
-          No posts yet. Be the first to create one!
-        </p>
+        <div className="home-empty">
+          <div className="empty-icon">📭</div>
+          <h3>No posts found</h3>
+          <p>
+            Try changing filters or be the first one to share something
+            happening on campus.
+          </p>
+        </div>
       ) : (
-        posts.map((post) => <PostCard key={post._id} post={post} />)
+        <div className="posts-list">
+          {posts.map((post) => (
+            <PostCard key={post._id} post={post} />
+          ))}
+        </div>
       )}
     </div>
   );

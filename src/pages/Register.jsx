@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axiosInstance";
+import "./Register.css";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -10,6 +11,7 @@ export default function Register() {
     branch: "",
     year: ""
   });
+
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -31,70 +33,89 @@ export default function Register() {
   };
 
   return (
-    <div style={{ marginTop: "2rem", maxWidth: "400px", marginInline: "auto" }}>
-      <h2 style={{ marginBottom: "1rem", fontSize: "1.2rem", fontWeight: 600 }}>Register</h2>
-      {error && (
-        <p style={{ color: "red", fontSize: "0.85rem", marginBottom: "0.5rem" }}>{error}</p>
-      )}
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        <input
-          name="name"
-          placeholder="Full Name"
-          value={form.name}
-          onChange={onChange}
-          required
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="College Email"
-          value={form.email}
-          onChange={onChange}
-          required
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={onChange}
-          required
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <input
-          name="branch"
-          placeholder="Branch (e.g., CSE)"
-          value={form.branch}
-          onChange={onChange}
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <input
-          name="year"
-          placeholder="Year (e.g., 3rd year)"
-          value={form.year}
-          onChange={onChange}
-          style={{ padding: "0.5rem", borderRadius: "0.4rem", border: "1px solid #d1d5db" }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: "#16a34a",
-            color: "white",
-            fontWeight: 500
-          }}
-        >
-          Register
-        </button>
-      </form>
-      <p style={{ fontSize: "0.85rem", marginTop: "0.75rem" }}>
-        Already have an account? <Link to="/login" style={{ color: "#2563eb" }}>Login</Link>
-      </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2>Create an account</h2>
+          <p>Join the campus social network in seconds</p>
+        </div>
+
+        {error && <p className="auth-error">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+
+          <div className="form-field">
+            <label className="field-label">Full Name</label>
+            <input
+              name="name"
+              placeholder="e.g. Utkarsh Munna"
+              value={form.name}
+              onChange={onChange}
+              required
+              className="auth-input"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">College Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="example@college.edu"
+              value={form.email}
+              onChange={onChange}
+              required
+              className="auth-input"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Choose a strong password"
+              value={form.password}
+              onChange={onChange}
+              required
+              className="auth-input"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">Branch</label>
+            <input
+              name="branch"
+              placeholder="e.g. CSE, ECE, ME"
+              value={form.branch}
+              onChange={onChange}
+              className="auth-input"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">Year</label>
+            <input
+              name="year"
+              placeholder="e.g. 1st year, 3rd year"
+              value={form.year}
+              onChange={onChange}
+              className="auth-input"
+            />
+          </div>
+
+          <button type="submit" className="auth-btn register-btn">
+            Create Account
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Already have an account?{" "}
+          <Link to="/login" className="auth-link">
+            Login
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

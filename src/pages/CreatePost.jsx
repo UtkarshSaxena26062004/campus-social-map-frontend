@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
+import "./CreatePost.css";
 
 // 👉 yahan apna Cloudinary details daal
 const CLOUD_NAME = "doyljoj7v";
@@ -57,12 +58,10 @@ export default function CreatePost() {
     try {
       let imageUrl = "";
 
-      // 1️⃣ Pehle image upload (agar file select hai)
       if (imageFile) {
         imageUrl = await uploadImageToCloudinary(imageFile);
       }
 
-      // 2️⃣ Ab backend ko post create request
       const payload = {
         ...form,
         tags: form.tags
@@ -91,161 +90,177 @@ export default function CreatePost() {
   };
 
   return (
-    <div style={{ marginTop: "1.5rem", maxWidth: "520px" }}>
-      <h2
-        style={{
-          fontSize: "1.2rem",
-          fontWeight: 600,
-          marginBottom: "0.75rem",
-        }}
-      >
-        Create New Post
-      </h2>
-      {error && (
-        <p
-          style={{
-            color: "red",
-            fontSize: "0.85rem",
-            marginBottom: "0.5rem",
-          }}
-        >
-          {error}
-        </p>
-      )}
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.75rem",
-        }}
-      >
-        <input
-          name="title"
-          placeholder="Title"
-          value={form.title}
-          onChange={onChange}
-          required
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "1px solid #d1d5db",
-          }}
-        />
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={onChange}
-          required
-          rows={3}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "1px solid #d1d5db",
-          }}
-        />
-        <select
-          name="type"
-          value={form.type}
-          onChange={onChange}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "1px solid #d1d5db",
-          }}
-        >
-          <option value="EVENT">Event</option>
-          <option value="STUDY_GROUP">Study Group</option>
-          <option value="LOST_FOUND">Lost &amp; Found</option>
-        </select>
-        <input
-          name="locationText"
-          placeholder="Location (e.g., Block A, Seminar Hall)"
-          value={form.locationText}
-          onChange={onChange}
-          required
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "1px solid #d1d5db",
-          }}
-        />
-
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <input
-            type="date"
-            name="date"
-            value={form.date}
-            onChange={onChange}
-            style={{
-              flex: 1,
-              padding: "0.5rem",
-              borderRadius: "0.4rem",
-              border: "1px solid #d1d5db",
-            }}
-          />
-          <input
-            type="time"
-            name="time"
-            value={form.time}
-            onChange={onChange}
-            style={{
-              flex: 1,
-              padding: "0.5rem",
-              borderRadius: "0.4rem",
-              border: "1px solid #d1d5db",
-            }}
-          />
+    <div className="create-page">
+      <div className="create-card">
+        <div className="create-header">
+          <h2>Create a new post</h2>
+          <p>Share an event, study group, or campus update with everyone.</p>
         </div>
 
-        {/* Image input */}
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.85rem",
-              marginBottom: "0.25rem",
-            }}
+        {error && <p className="create-error">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="create-form">
+          {/* Title */}
+          <div className="form-field">
+            <label className="field-label" htmlFor="title">
+              Title <span>*</span>
+            </label>
+            <input
+              id="title"
+              name="title"
+              placeholder="e.g., DSA Doubt Solving Session"
+              value={form.title}
+              onChange={onChange}
+              required
+              className="field-input"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="form-field">
+            <label className="field-label" htmlFor="description">
+              Description <span>*</span>
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Add details like agenda, who can join, things to bring..."
+              value={form.description}
+              onChange={onChange}
+              required
+              rows={4}
+              className="field-textarea"
+            />
+          </div>
+
+          {/* Type + Location */}
+          <div className="form-row">
+            <div className="form-field">
+              <label className="field-label" htmlFor="type">
+                Type
+              </label>
+              <select
+                id="type"
+                name="type"
+                value={form.type}
+                onChange={onChange}
+                className="field-input"
+              >
+                <option value="EVENT">Event</option>
+                <option value="STUDY_GROUP">Study Group</option>
+                <option value="LOST_FOUND">Lost &amp; Found</option>
+              </select>
+            </div>
+
+            <div className="form-field">
+              <label className="field-label" htmlFor="locationText">
+                Location <span>*</span>
+              </label>
+              <input
+                id="locationText"
+                name="locationText"
+                placeholder="Block A, Lab 3, Seminar Hall..."
+                value={form.locationText}
+                onChange={onChange}
+                required
+                className="field-input"
+              />
+            </div>
+          </div>
+
+          {/* Date + Time */}
+          <div className="form-row">
+            <div className="form-field">
+              <label className="field-label" htmlFor="date">
+                Date
+              </label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={form.date}
+                onChange={onChange}
+                className="field-input"
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="field-label" htmlFor="time">
+                Time
+              </label>
+              <input
+                type="time"
+                id="time"
+                name="time"
+                value={form.time}
+                onChange={onChange}
+                className="field-input"
+              />
+            </div>
+          </div>
+
+          {/* Image */}
+          <div className="form-field">
+            <label className="field-label">Image (optional)</label>
+            <label className="file-drop" htmlFor="image-upload">
+              <div className="file-drop-inner">
+                <span className="file-icon">📎</span>
+                <div className="file-text">
+                  <span className="file-main">
+                    {imageFile ? imageFile.name : "Click to upload or drag & drop"}
+                  </span>
+                  <span className="file-sub">PNG, JPG up to ~5MB</span>
+                </div>
+              </div>
+            </label>
+            <input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="file-input-hidden"
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="form-field">
+            <label className="field-label" htmlFor="tags">
+              Tags
+            </label>
+            <input
+              id="tags"
+              name="tags"
+              placeholder="e.g., DSA, fresher, hackathon"
+              value={form.tags}
+              onChange={onChange}
+              className="field-input"
+            />
+            {form.tags && (
+              <p className="tags-hint">
+                Press comma to separate tags. Preview:{" "}
+                {form.tags
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+                  .map((t) => (
+                    <span key={t} className="tags-chip">
+                      #{t}
+                    </span>
+                  ))}
+              </p>
+            )}
+          </div>
+
+          {/* Button */}
+          <button
+            type="submit"
+            disabled={uploading}
+            className="create-btn"
           >
-            Image (optional)
-          </label>
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-          {imageFile && (
-            <p style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>
-              Selected: {imageFile.name}
-            </p>
-          )}
-        </div>
-
-        <input
-          name="tags"
-          placeholder="Tags (comma separated, e.g., DSA, placement)"
-          value={form.tags}
-          onChange={onChange}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "1px solid #d1d5db",
-          }}
-        />
-
-        <button
-          type="submit"
-          disabled={uploading}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "0.4rem",
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: "#2563eb",
-            color: "white",
-            fontWeight: 500,
-          }}
-        >
-          {uploading ? "Uploading..." : "Create"}
-        </button>
-      </form>
+            {uploading ? "Publishing..." : "Publish post"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

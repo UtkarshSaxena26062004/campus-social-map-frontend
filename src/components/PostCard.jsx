@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./PostCard.css";
 
@@ -19,17 +19,70 @@ export default function PostCard({ post }) {
   const dateStr = post.date ? new Date(post.date).toLocaleDateString() : null;
   const { label, className } = typeMeta(post.type);
 
+  const bgRef = useRef(null);
+  const hiddenImgRef = useRef(null);
+
+  useEffect(() => {
+    const el = bgRef.current;
+    if (!el) return;
+
+    // Force the wrapper to the desired dimensions & background behaviour with !important
+    el.style.setProperty("min-height", "260px", "important");
+    el.style.setProperty("max-height", "360px", "important");
+    el.style.setProperty("padding", "0px", "important");
+    el.style.setProperty("overflow", "hidden", "important");
+    el.style.setProperty("display", "block", "important");
+    el.style.setProperty("border-radius", "0.9rem", "important");
+    el.style.setProperty("background-repeat", "no-repeat", "important");
+    el.style.setProperty("background-position", "center center", "important");
+    // important: contain so full image visible (no crop)
+    el.style.setProperty("background-size", "contain", "important");
+
+    if (post.imageUrl) {
+      // apply image url as background
+      el.style.setProperty("background-image", `url("${post.imageUrl}")`, "important");
+      el.setAttribute("aria-label", post.title || "post image");
+    } else {
+      el.style.removeProperty("background-image");
+      el.removeAttribute("aria-label");
+    }
+
+    // Also ensure hidden <img> (if present) is allowed to load (helps caching)
+    const hiddenImg = hiddenImgRef.current;
+    if (hiddenImg && hiddenImg.src !== post.imageUrl) {
+      hiddenImg.src = post.imageUrl || "";
+    }
+  }, [post.imageUrl, post.title]);
+
   return (
     <Link to={`/posts/${post._id}`} className="post-card-link">
       <article className="post-card">
-        {/* Image */}
+        {/* IMAGE AS BACKGROUND (force contain) */}
         {post.imageUrl && (
-          <div className="post-card-image-wrapper">
+          <div
+            ref={bgRef}
+            className="post-card-bg-wrapper"
+            role="img"
+            aria-hidden={false}
+          >
+            {/* Hidden <img> to ensure browser preloads the source (and to keep accessibility/caching sane).
+                It's visually hidden but keeps normal image loading behaviour. */}
             <img
-              src={post.imageUrl}
-              alt={post.title}
-              className="post-card-image"
+              ref={hiddenImgRef}
+              alt={post.title || ""}
+              style={{
+                width: 0,
+                height: 0,
+                position: "absolute",
+                left: "-9999px",
+                opacity: 0,
+                pointerEvents: "none",
+              }}
             />
+            {/* Keep a non-visual label for assistive tech */}
+            <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(1px,1px,1px,1px)" }}>
+              {post.title}
+            </span>
           </div>
         )}
 
